@@ -1,21 +1,26 @@
 <?php
 class Mcrypt_DesEncryptorTest extends PHPUnit_Framework_TestCase
 {
-    public function additionProvider($key, $iv, $str)
+    /**
+    * @dataProvider additionEncryptProvider
+    */
+    public function testEncrypt($key, $iv, $keySize, $mode, $paddingMode, $str, $base64Result)
     {
-        return [
-            ["key", "iv", "hello world!"],
-        ];
+        $desEncryptor = new Mcrypt\DesEncryptor($key, $iv);
+        $desEncryptor->setKeySize($keySize);
+        $desEncryptor->setMode($mode);
+        $desEncryptor->setPaddingMode($paddingMode);
+        $mcryptResult = $desEncryptor->encrypt3DES($str);
+        $this->assertEquals(base64_encode($mcryptResult), $base64Result);
+
+        $this->assertEquals($str, $desEncryptor->decrypt3DES($mcryptResult));
     }
 
-    /**
-    * @dataProvider additionProvider
-    */
-    public function testEncryptAndDecrypt($key, $iv, $str)
+    public function additionEncryptProvider()
     {
-        $desEncryptor = new \Mcrypt\DesEncryptor($key, $iv);
-        $encrypt_str = $desEncryptor->encrypt3DES($str);
-        $decrypt_str = $desEncryptor->decrypt3DES($encrypt_str);
-        $this->assertEquals($str, $decrypt_str);
+        //array(key, iv, key_length, mode, paddingMode, string, result of 3des mcrypt and base64_encode)
+        return [
+            ["1234567890123456", "12345678", 192, MCRYPT_MODE_CBC, Mcrypt\String::pkcs5Padding, "hello world!", "tpD3+3PSR/Tx0saMLxJVUg=="],
+        ];
     }
 }
